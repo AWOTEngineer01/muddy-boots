@@ -1,6 +1,12 @@
 
 import json
-from database import db # Retrieve the already prepped db connection
+# from database import db # Retrieve the already prepped db connection
+import random
+from os.path import dirname, abspath
+import json
+import datetime
+
+file_path = f"{dirname(abspath(__file__))}\\txt\\"
 
 class MuddyBootsFW:
     """Hosts common paramaters across classes"""
@@ -30,7 +36,8 @@ class MuddyBootsFW:
             return data
         except:
             return None
-        
+    
+    
         
     # Produce a string of the dict on call
     def __str__(self):
@@ -169,9 +176,108 @@ class Player (MuddyBootsFW):
     """ Hosts all data on a player"""
     functionName = "fn_getPlayer"
 
+class MuddyBootsBluePrint:
+    # Gives an object to export data with
+
+    def __init__(self, type) -> None:
+        self.SetType(type)
+        print(f"{type} created")
+
+    def SetType(self,type) -> None: self.type = type
+    
+    def GetType(self) -> str: return self.type
+
+    def ToJSON(self, folder) -> None:
+
+        # Export the class object as a dict
+        data = self.__dict__.copy()
+
+        # Remove the type
+        del data["type"]
+
+        # Output the object with the extracted data and type
+        obj = {
+            "created" : datetime.datetime.now(datetime.UTC).strftime("%Y%m%dT%H%M%S%fZ"),
+            "type" : self.GetType(),
+            "data" : data
+        }
+        fileDate = datetime.datetime.now().strftime("%Y%m%d %H%M%S")
+        file = f"{folder}\\{self.type}_{fileDate}.json"
+        print(f"outputting file to JSON: {file}")
+        with open(file, 'w', encoding='utf-8') as f:
+            json.dump(self, f, ensure_ascii=False, indent=4, default=lambda o:obj, sort_keys=True)
+
 class Players:
     """ Hosts a temp db of players, will only update once requested"""
       
-    
-test = Match(6)
-print(test)
+class MBTool:
+    """
+        The multitool for Muddy Boots
+    """ 
+
+class User(MuddyBootsBluePrint):
+
+    def __init__( self ) -> None:
+
+        # Implicity import the super class init
+        super().__init__("User")
+        
+    # Setters
+    def SetForName(self, forname:str) -> None: self.forname = forname
+    def SetSurName(self, surname:str) -> None: self.surname = surname
+    def SetUserName(self,username:str) -> None: self.username = username
+    def SetSquadName(self,squadName:str) -> None: self.squadName = squadName
+    def SetKnownAs(self, knownAs:str) -> None: self.knownAs = knownAs
+    def SetEmail(self,email:str) -> None: self.email = email
+    def SetDOB(self,dob:datetime) -> None: self.dob = dob
+
+    # Getters
+    def GetForName(self) -> str: return self.forname
+    def GetSurName(self) -> str: return self.surname
+    def GetUserName(self) -> str: return self.username
+    def GetSquadName(self) -> str: return self.squadName
+    def GetKnownAs(self) -> str: return self.knownAs
+    def GetEmail(self) -> str: return self.email
+    def GetDOB(self) -> str: return self.dob
+
+    # Create a random user (for dev purposes)
+    def CreateRandom(self):
+        print("creating random")
+        self.SetForName(random.choice((open(f'{file_path}\\fornames.txt')).readlines()).replace("\n","")) 
+        self.SetSurName(random.choice((open(f'{file_path}\\surnames.txt')).readlines()).replace("\n",""))
+        self.SetUserName(f"{self.GetForName()}{self.GetSurName()}")
+        self.SetSquadName(self.GetUserName())
+        self.SetKnownAs(self.GetSurName())
+        self.SetEmail(f"{self.GetUserName()}@muddyboots.co.uk")
+
+        # Create a date of birth
+        day = random.choice(range(1,31))
+        month = random.choice(range(1,12))
+        year = random.choice(range(1930,2020))
+        self.SetDOB(f"{day}/{month}/{year}")
+        self.Print()
+
+    def ToString(self) -> str:
+        out = f"Forname: {self.GetForName()}\n"
+        out = f"Surname: {self.GetSurName()}\n" + out
+        out = f"Username: {self.GetUserName()}\n" + out
+        out = f"SquadName: {self.GetSquadName()}\n" + out
+        out = f"KnownAs: {self.GetKnownAs()}\n" + out
+        out = f"Email: {self.GetEmail()}\n" + out
+        out = f"DOB: {self.GetDOB()}" + out
+        
+        return out
+
+
+    # Print details of the user to the screen
+    def Print(self) -> None: print(self)
+
+    def GetJSON(self) -> json:
+        # Passes the user back as a json object
+        
+        return json.dumps(
+            self,
+            default=lambda o: o.__dict__, 
+            sort_keys=True,
+            indent=4
+        )
